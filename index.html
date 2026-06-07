@@ -176,37 +176,38 @@
     </div>
 
     <script>
+        // Updated mappings tailored perfectly to ESPN's image server
         const initialTeams = [
-            { id: "108", name: "Angels", initialTier: "tier-bench" },
-            { id: "109", name: "Astros", initialTier: "tier-bench" },
-            { id: "133", name: "Athletics", initialTier: "tier-bench" },
-            { id: "144", name: "Braves", initialTier: "tier-bench" },
-            { id: "110", name: "Orioles", initialTier: "tier-bench" },
-            { id: "111", name: "Red Sox", initialTier: "tier-bench" },
-            { id: "112", name: "Cubs", initialTier: "tier-bench" },
-            { id: "145", name: "White Sox", initialTier: "tier-bench" },
-            { id: "113", name: "Reds", initialTier: "tier-bench" },
-            { id: "114", name: "Guardians", initialTier: "tier-bench" },
-            { id: "115", name: "Rockies", initialTier: "tier-bench" },
-            { id: "116", name: "Tigers", initialTier: "tier-bench" },
-            { id: "119", name: "Dodgers", initialTier: "tier-bench" },
-            { id: "146", name: "Marlins", initialTier: "tier-bench" },
-            { id: "158", name: "Brewers", initialTier: "tier-bench" },
-            { id: "142", name: "Twins", initialTier: "tier-bench" },
-            { id: "121", name: "Mets", initialTier: "tier-bench" },
-            { id: "147", name: "Yankees", initialTier: "tier-bench" },
-            { id: "134", name: "Pirates", initialTier: "tier-bench" },
-            { id: "143", name: "Phillies", initialTier: "tier-bench" },
-            { id: "135", name: "Padres", initialTier: "tier-bench" },
-            { id: "137", name: "Giants", initialTier: "tier-bench" },
-            { id: "136", name: "Mariners", initialTier: "tier-bench" },
-            { id: "138", name: "Cardinals", initialTier: "tier-bench" },
-            { id: "139", name: "Rays", initialTier: "tier-bench" },
-            { id: "140", name: "Rangers", initialTier: "tier-bench" },
-            { id: "141", name: "Blue Jays", initialTier: "tier-bench" },
-            { id: "120", name: "Nationals", initialTier: "tier-bench" },
-            { id: "118", name: "Royals", initialTier: "tier-bench" },
-            { id: "117", name: "Diamondbacks", initialTier: "tier-bench" }
+            { id: "laa", name: "Angels", initialTier: "tier-bench" },
+            { id: "hou", name: "Astros", initialTier: "tier-bench" },
+            { id: "oak", name: "Athletics", initialTier: "tier-bench" },
+            { id: "atl", name: "Braves", initialTier: "tier-bench" },
+            { id: "bal", name: "Orioles", initialTier: "tier-bench" },
+            { id: "bos", name: "Red Sox", initialTier: "tier-bench" },
+            { id: "chc", name: "Cubs", initialTier: "tier-bench" },
+            { id: "chw", name: "White Sox", initialTier: "tier-bench" },
+            { id: "cin", name: "Reds", initialTier: "tier-bench" },
+            { id: "cle", name: "Guardians", initialTier: "tier-bench" },
+            { id: "col", name: "Rockies", initialTier: "tier-bench" },
+            { id: "det", name: "Tigers", initialTier: "tier-bench" },
+            { id: "lad", name: "Dodgers", initialTier: "tier-bench" },
+            { id: "mia", name: "Marlins", initialTier: "tier-bench" },
+            { id: "mil", name: "Brewers", initialTier: "tier-bench" },
+            { id: "min", name: "Twins", initialTier: "tier-bench" },
+            { id: "nym", name: "Mets", initialTier: "tier-bench" },
+            { id: "nyy", name: "Yankees", initialTier: "tier-bench" },
+            { id: "pit", name: "Pirates", initialTier: "tier-bench" },
+            { id: "phi", name: "Phillies", initialTier: "tier-bench" },
+            { id: "sd",  name: "Padres", initialTier: "tier-bench" },
+            { id: "sf",  name: "Giants", initialTier: "tier-bench" },
+            { id: "sea", name: "Mariners", initialTier: "tier-bench" },
+            { id: "stl", name: "Cardinals", initialTier: "tier-bench" },
+            { id: "tb",  name: "Rays", initialTier: "tier-bench" },
+            { id: "tex", name: "Rangers", initialTier: "tier-bench" },
+            { id: "tor", name: "Blue Jays", initialTier: "tier-bench" },
+            { id: "wsh", name: "Nationals", initialTier: "tier-bench" },
+            { id: "kc",  name: "Royals", initialTier: "tier-bench" },
+            { id: "ari", name: "Diamondbacks", initialTier: "tier-bench" }
         ];
 
         function buildTierList() {
@@ -220,7 +221,8 @@
                 card.title = team.name;
 
                 const img = document.createElement('img');
-                img.src = `https://www.mlbstatic.com/team-logos/${team.id}.svg`;
+                // Pointing to the stable ESPN image endpoint
+                img.src = `https://a.espncdn.com/combiner/i?img=/i/teamlogos/mlb/500/${team.id}.png&w=150&h=150`;
                 img.alt = team.name;
 
                 card.appendChild(img);
