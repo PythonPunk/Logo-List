@@ -70,7 +70,7 @@
 
         .tier-bench {
             background-color: #333;
-            min-height: 100px;
+            min-height: 120px;
         }
         .tier-bench .tier-label {
             background-color: #555;
@@ -166,90 +166,4 @@
             <div class="tier-dropzone" id="tier-f"></div>
         </div>
         <div class="tier-row tier-bench">
-            <div class="tier-label">Pool</div>
-            <div class="tier-dropzone" id="tier-bench"></div>
-        </div>
-    </div>
-
-    <div class="controls">
-        <button id="reset-btn">Reset Grid</button>
-    </div>
-
-    <script>
-        // Data containing your exact team breakdown
-        const initialTeams = [
-            { id: "110", name: "Orioles", initialTier: "tier-a" },
-            { id: "141", name: "Blue Jays", initialTier: "tier-a" },
-            { id: "147", name: "Yankees", initialTier: "tier-b" },
-            { id: "111", name: "Red Sox", initialTier: "tier-b" },
-            { id: "145", name: "White Sox", initialTier: "tier-b" },
-            { id: "133", name: "Athletics", initialTier: "tier-b" },
-            { id: "140", name: "Rangers", initialTier: "tier-b" },
-            { id: "118", name: "Royals", initialTier: "tier-c" },
-            { id: "116", name: "Tigers", initialTier: "tier-c" },
-            { id: "136", name: "Mariners", initialTier: "tier-c" },
-            { id: "117", name: "Astros", initialTier: "tier-c" },
-            { id: "139", name: "Rays", initialTier: "tier-d" },
-            { id: "142", name: "Twins", initialTier: "tier-d" },
-            { id: "108", name: "Angels", initialTier: "tier-d" },
-            { id: "114", name: "Guardians", initialTier: "tier-f" }
-        ];
-
-        function buildTierList() {
-            // Clear current items inside zones
-            document.querySelectorAll('.tier-dropzone').forEach(zone => zone.innerHTML = '');
-
-            initialTeams.forEach(team => {
-                // Create card container
-                const card = document.createElement('div');
-                card.className = 'logo-card';
-                card.draggable = true;
-                card.id = `team-${team.id}`;
-                card.title = team.name;
-
-                // Create image element
-                const img = document.createElement('img');
-                img.src = `https://www.mlbstatic.com/team-logos/${team.id}.svg`;
-                img.alt = team.name;
-
-                card.appendChild(img);
-
-                // Attach Drag start
-                card.addEventListener('dragstart', (e) => {
-                    e.dataTransfer.setData('text/plain', card.id);
-                });
-
-                // Place into initial tier
-                const targetZone = document.getElementById(team.initialTier);
-                if (targetZone) targetZone.appendChild(card);
-            });
-        }
-
-        // Setup Drag and Drop Mechanics
-        document.querySelectorAll('.tier-dropzone').forEach(zone => {
-            zone.addEventListener('dragover', (e) => {
-                e.preventDefault();
-                zone.classList.add('drag-over');
-            });
-
-            zone.addEventListener('dragleave', () => {
-                zone.classList.remove('drag-over');
-            });
-
-            zone.addEventListener('drop', (e) => {
-                e.preventDefault();
-                zone.classList.remove('drag-over');
-                const cardId = e.dataTransfer.getData('text/plain');
-                const card = document.getElementById(cardId);
-                if (card) zone.appendChild(card);
-            });
-        });
-
-        // Reset Event listener
-        document.getElementById('reset-btn').addEventListener('click', buildTierList);
-
-        // Run on load
-        buildTierList();
-    </script>
-</body>
-</html>
+            <div class
