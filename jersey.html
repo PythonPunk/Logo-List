@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MLB Home Jersey Tier List Maker</title>
+    <style>
+        :root {
+            --bg-color: #1a1a1a;
+            --panel-color: #262626;
+            --text-color: #ffffff;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        h1 {
+            margin-bottom: 20px;
+            font-weight: 700;
+        }
+
+        .tier-container {
+            width: 100%;
+            max-width: 900px;
+            border: 2px solid #333;
+            border-radius: 8px;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+
+        .tier-row {
+            display: flex;
+            border-bottom: 1px solid #333;
+            min-height: 90px;
+            background-color: var(--panel-color);
+        }
+
+        .tier-row:last-child {
+            border-bottom: none;
+        }
+
+        .tier-label {
+            width: 100px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 24px;
+            color: #000;
+            text-shadow: 0px 1px 2px rgba(255,255,255,0.3);
+            user-select: none;
+            flex-shrink: 0;
+        }
+
+        /* Tier Colors */
+        .tier-s { background-color: #ff7f7f; }
+        .tier-a { background-color: #ffbf7f; }
+        .tier-b { background-color: #ffdf7f; }
+        .tier-c { background-color: #ffff7f; }
+        .tier-d { background-color: #bfff7f; }
+        .tier-f { background-color: #7fff7f; }
+
+        .tier-bench {
+            background-color: #333;
+            min-height: 120px;
+        }
+        .tier-bench .tier-label {
+            background-color: #555;
+            color: #fff;
+            font-size: 16px;
+        }
+
+        .tier-dropzone {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            padding: 10px;
+            gap: 10px;
+            flex-grow: 1;
+            transition: background-color 0.2s ease;
+        }
+
+        .tier-dropzone.drag-over {
+            background-color: #3d3d3d;
+        }
+
+        .logo-card {
+            width: 65px;
+            height: 65px;
+            background-color: #111; /* Darker card background to make home cap variations stand out cleanly */
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: grab;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+            transition: transform 0.1s ease;
+            border: 1px solid #333;
+        }
+
+        .logo-card:active {
+            cursor: grabbing;
+            transform: scale(1.05);
+        }
+
+        .logo-card img {
+            width: 85%;
+            height: 85%;
+            pointer-events: none; 
+        }
+
+        .controls {
+            margin-top: 10px;
+        }
+
+        button {
+            background-color: #007aff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-size: 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        button:hover {
+            background-color: #0063cc;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>MLB Home Jersey/Cap Tier List Maker</h1>
+
+    <div class="tier-container">
+        <div class="tier-row">
+            <div class="tier-label tier-s">S</div>
+            <div class="tier-dropzone" id="tier-s"></div>
+        </div>
+        <div class="tier-row">
+            <div class="tier-label tier-a">A</div>
+            <div class="tier-dropzone" id="tier-a"></div>
+        </div>
+        <div class="tier-row">
+            <div class="tier-label tier-b">B</div>
+            <div class="tier-dropzone" id="tier-b"></div>
+        </div>
+        <div class="tier-row">
+            <div class="tier-label tier-c">C</div>
+            <div class="tier-dropzone" id="tier-c"></div>
+        </div>
+        <div class="tier-row">
+            <div class="tier-label tier-d">D</div>
+            <div class="tier-dropzone" id="tier-d"></div>
+        </div>
+        <div class="tier-row">
+            <div class="tier-label tier-f">F</div>
+            <div class="tier-dropzone" id="tier-f"></div>
+        </div>
+        <div class="tier-row tier-bench">
+            <div class="tier-label">Pool</div>
+            <div class="tier-dropzone" id="tier-bench"></div>
+        </div>
+    </div>
+
+    <div class="controls">
+        <button id="reset-btn">Reset Grid</button>
+    </div>
+
+    <script>
+        const initialTeams = [
+            { id: "108", name: "Angels", initialTier: "tier-bench" },
+            { id: "109", name: "Astros", initialTier: "tier-bench" },
+            { id: "133", name: "Athletics", initialTier: "tier-bench" },
+            { id: "144", name: "Braves", initialTier: "tier-bench" },
+            { id: "110", name: "Orioles", initialTier: "tier-bench" },
+            { id: "111", name: "Red Sox", initialTier: "tier-bench" },
+            { id: "112", name: "Cubs", initialTier: "tier-bench" },
+            { id: "145", name: "White Sox", initialTier: "tier-bench" },
+            { id: "113", name: "Reds", initialTier: "tier-bench" },
+            { id: "114", name: "Guardians", initialTier: "tier-bench" },
+            { id: "115", name: "Rockies", initialTier: "tier-bench" },
+            { id: "116", name: "Tigers", initialTier: "tier-bench" },
+            { id: "119", name: "Dodgers", initialTier: "tier-bench" },
+            { id: "146", name: "Marlins", initialTier: "tier-bench" },
+            { id: "158", name: "Brewers", initialTier: "tier-bench" },
+            { id: "142", name: "Twins", initialTier: "tier-bench" },
+            { id: "121", name: "Mets", initialTier: "tier-bench" },
+            { id: "147", name: "Yankees", initialTier: "tier-bench" },
+            { id: "134", name: "Pirates", initialTier: "tier-bench" },
+            { id: "143", name: "Phillies", initialTier: "tier-bench" },
+            { id: "135", name: "Padres", initialTier: "tier-bench" },
+            { id: "137", name: "Giants", initialTier: "tier-bench" },
+            { id: "136", name: "Mariners", initialTier: "tier-bench" },
+            { id: "138", name: "Cardinals", initialTier: "tier-bench" },
+            { id: "139", name: "Rays", initialTier: "tier-bench" },
+            { id: "140", name: "Rangers", initialTier: "tier-bench" },
+            { id: "141", name: "Blue Jays", initialTier: "tier-bench" },
+            { id: "120", name: "Nationals", initialTier: "tier-bench" },
+            { id: "118", name: "Royals", initialTier: "tier-bench" },
+            { id: "117", name: "Diamondbacks", initialTier: "tier-bench" }
+        ];
+
+        function buildTierList() {
+            document.querySelectorAll('.tier-dropzone').forEach(zone => zone.innerHTML = '');
+
+            initialTeams.forEach(team => {
+                const card = document.createElement('div');
+                card.className = 'logo-card';
+                card.draggable = true;
+                card.id = `team-${team.id}`;
+                card.title = team.name;
+
+                const img = document.createElement('img');
+                // Target the home game on-cap variations to identify jerseys/uniform concepts
+                img.src = `https://www.mlbstatic.com/team-logos/team-cap-on-dark/${team.id}.svg`;
+                img.alt = team.name;
+
+                card.appendChild(img);
+
+                card.addEventListener('dragstart', (e) => {
+                    e.dataTransfer.setData('text/plain', card.id);
+                });
+
+                const targetZone = document.getElementById(team.initialTier);
+                if (targetZone) targetZone.appendChild(card);
+            });
+        }
+
+        document.querySelectorAll('.tier-dropzone').forEach(zone => {
+            zone.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                zone.classList.add('drag-over');
+            });
+
+            zone.addEventListener('dragleave', () => {
+                zone.classList.remove('drag-over');
+            });
+
+            zone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                zone.classList.remove('drag-over');
+                const cardId = e.dataTransfer.getData('text/plain');
+                const card = document.getElementById(cardId);
+                if (card) zone.appendChild(card);
+            });
+        });
+
+        document.getElementById('reset-btn').addEventListener('click', buildTierList);
+        buildTierList();
+    </script>
+</body>
+</html>
