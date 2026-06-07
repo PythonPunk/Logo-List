@@ -3,16 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MLB Home Jersey Tier List Maker</title>
+    <title>Interactive MLB Playoff Bracket</title>
     <style>
         :root {
-            --bg-color: #1a1a1a;
-            --panel-color: #262626;
+            --bg-color: #121212;
+            --panel-color: #1e1e1e;
+            --border-color: #333;
             --text-color: #ffffff;
+            --accent-color: #007aff;
+            --win-color: #34c759;
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             background-color: var(--bg-color);
             color: var(--text-color);
             margin: 0;
@@ -22,241 +25,484 @@
             align-items: center;
         }
 
-        h1 {
-            margin-bottom: 20px;
-            font-weight: 700;
-        }
+        h1 { margin-bottom: 5px; font-weight: 700; }
+        p { color: #aaa; margin-bottom: 25px; font-size: 14px; }
 
-        .tier-container {
-            width: 100%;
-            max-width: 900px;
-            border: 2px solid #333;
-            border-radius: 8px;
-            overflow: hidden;
-            margin-bottom: 20px;
-        }
-
-        .tier-row {
-            display: flex;
-            border-bottom: 1px solid #333;
-            min-height: 90px;
+        .setup-panel {
             background-color: var(--panel-color);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 30px;
+            max-width: 1000px;
+            width: 100%;
         }
 
-        .tier-row:last-child {
-            border-bottom: none;
-        }
-
-        .tier-label {
-            width: 100px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+        .setup-title {
             font-weight: bold;
-            font-size: 24px;
-            color: #000;
-            text-shadow: 0px 1px 2px rgba(255,255,255,0.3);
-            user-select: none;
-            flex-shrink: 0;
+            margin-bottom: 10px;
+            text-align: center;
+            color: var(--accent-color);
         }
 
-        /* Tier Colors */
-        .tier-s { background-color: #ff7f7f; }
-        .tier-a { background-color: #ffbf7f; }
-        .tier-b { background-color: #ffdf7f; }
-        .tier-c { background-color: #ffff7f; }
-        .tier-d { background-color: #bfff7f; }
-        .tier-f { background-color: #7fff7f; }
-
-        .tier-bench {
-            background-color: #333;
-            min-height: 120px;
-        }
-        .tier-bench .tier-label {
-            background-color: #555;
-            color: #fff;
-            font-size: 16px;
+        .selectors-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
         }
 
-        .tier-dropzone {
+        .league-selectors h3 {
+            margin: 0 0 10px 0;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 5px;
+        }
+
+        .select-row {
             display: flex;
-            flex-wrap: wrap;
             align-items: center;
-            padding: 10px;
-            gap: 10px;
+            margin-bottom: 6px;
+            font-size: 13px;
+        }
+
+        .select-row label { width: 60px; color: #bbb; }
+        .select-row select {
             flex-grow: 1;
-            transition: background-color 0.2s ease;
+            background-color: #2a2a2a;
+            color: white;
+            border: 1px solid var(--border-color);
+            padding: 4px;
+            border-radius: 4px;
+            outline: none;
         }
 
-        .tier-dropzone.drag-over {
-            background-color: #3d3d3d;
-        }
-
-        .logo-card {
-            width: 65px;
-            height: 65px;
-            background-color: #111; /* Darker card background to make home cap variations stand out cleanly */
-            border-radius: 6px;
+        /* Bracket Layout */
+        .bracket-container {
             display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            max-width: 1200px;
+            gap: 10px;
+        }
+
+        .league-half {
+            display: flex;
+            width: 45%;
+            justify-content: space-between;
+        }
+
+        .league-half.al { flex-direction: row; }
+        .league-half.nl { flex-direction: row-reverse; }
+
+        .round {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-around;
+            width: 140px;
+            min-height: 500px;
+        }
+
+        .series-box {
+            background-color: var(--panel-color);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+        }
+
+        .team-slot {
+            display: flex;
+            align-items: center;
+            padding: 8px;
+            height: 35px;
+            cursor: pointer;
+            user-select: none;
+            transition: background 0.2s ease;
+            position: relative;
+            border-bottom: 1px solid #2a2a2a;
+        }
+        .team-slot:last-child { border-bottom: none; }
+
+        .team-slot:hover {
+            background-color: #2a2a2a;
+        }
+
+        .team-slot img {
+            width: 24px;
+            height: 24px;
+            margin-right: 8px;
+            background: #fff;
+            border-radius: 4px;
+            padding: 2px;
+        }
+
+        .team-slot .seed {
+            font-size: 11px;
+            color: #777;
+            width: 14px;
+        }
+
+        .team-slot .name {
+            font-size: 13px;
+            font-weight: 600;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            flex-grow: 1;
+        }
+
+        .team-slot.winner {
+            background-color: rgba(52, 199, 89, 0.15);
+        }
+        .team-slot.winner::after {
+            content: "✓";
+            color: var(--win-color);
+            font-weight: bold;
+            font-size: 12px;
+            margin-left: 5px;
+        }
+
+        .world-series-center {
+            display: flex;
+            flex-direction: column;
             align-items: center;
             justify-content: center;
-            cursor: grab;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
-            transition: transform 0.1s ease;
-            border: 1px solid #333;
+            width: 10%;
+            text-align: center;
         }
 
-        .logo-card:active {
-            cursor: grabbing;
-            transform: scale(1.05);
+        .champion-box {
+            background: linear-gradient(145deg, #2a2a2a, #111);
+            border: 2px solid gold;
+            border-radius: 8px;
+            padding: 15px;
+            width: 120px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            box-shadow: 0 0 15px rgba(218, 165, 32, 0.3);
         }
 
-        .logo-card img {
-            width: 85%;
-            height: 85%;
-            pointer-events: none; 
-        }
-
-        .controls {
-            margin-top: 10px;
-        }
-
-        button {
-            background-color: #007aff;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            font-size: 16px;
+        .champion-box img {
+            width: 50px;
+            height: 50px;
+            background: white;
             border-radius: 6px;
-            cursor: pointer;
-            font-weight: 600;
+            padding: 3px;
+            margin-bottom: 8px;
         }
 
-        button:hover {
-            background-color: #0063cc;
+        .champion-box div {
+            font-size: 12px;
+            font-weight: bold;
+            color: gold;
+            text-transform: uppercase;
+        }
+
+        .champ-name {
+            color: white !important;
+            font-size: 14px !important;
+            margin-top: 4px;
         }
     </style>
 </head>
 <body>
 
-    <h1>MLB Home Jersey/Cap Tier List Maker</h1>
+    <h1>MLB Postseason Bracket Simulator</h1>
+    <p>Assign your seeds below, then click a team inside the bracket to advance them.</p>
 
-    <div class="tier-container">
-        <div class="tier-row">
-            <div class="tier-label tier-s">S</div>
-            <div class="tier-dropzone" id="tier-s"></div>
-        </div>
-        <div class="tier-row">
-            <div class="tier-label tier-a">A</div>
-            <div class="tier-dropzone" id="tier-a"></div>
-        </div>
-        <div class="tier-row">
-            <div class="tier-label tier-b">B</div>
-            <div class="tier-dropzone" id="tier-b"></div>
-        </div>
-        <div class="tier-row">
-            <div class="tier-label tier-c">C</div>
-            <div class="tier-dropzone" id="tier-c"></div>
-        </div>
-        <div class="tier-row">
-            <div class="tier-label tier-d">D</div>
-            <div class="tier-dropzone" id="tier-d"></div>
-        </div>
-        <div class="tier-row">
-            <div class="tier-label tier-f">F</div>
-            <div class="tier-dropzone" id="tier-f"></div>
-        </div>
-        <div class="tier-row tier-bench">
-            <div class="tier-label">Pool</div>
-            <div class="tier-dropzone" id="tier-bench"></div>
+    <div class="setup-panel">
+        <div class="setup-title">Configure Postseason Seeds</div>
+        <div class="selectors-grid">
+            <div class="league-selectors">
+                <h3>American League (AL)</h3>
+                <div class="select-row"><label>Seed 1:</label><select id="sel-al1"></select></div>
+                <div class="select-row"><label>Seed 2:</label><select id="sel-al2"></select></div>
+                <div class="select-row"><label>Seed 3:</label><select id="sel-al3"></select></div>
+                <div class="select-row"><label>Seed 4:</label><select id="sel-al4"></select></div>
+                <div class="select-row"><label>Seed 5:</label><select id="sel-al5"></select></div>
+                <div class="select-row"><label>Seed 6:</label><select id="sel-al6"></select></div>
+            </div>
+            <div class="league-selectors">
+                <h3>National League (NL)</h3>
+                <div class="select-row"><label>Seed 1:</label><select id="sel-nl1"></select></div>
+                <div class="select-row"><label>Seed 2:</label><select id="sel-nl2"></select></div>
+                <div class="select-row"><label>Seed 3:</label><select id="sel-nl3"></select></div>
+                <div class="select-row"><label>Seed 4:</label><select id="sel-nl4"></select></div>
+                <div class="select-row"><label>Seed 5:</label><select id="sel-nl5"></select></div>
+                <div class="select-row"><label>Seed 6:</label><select id="sel-nl6"></select></div>
+            </div>
         </div>
     </div>
 
-    <div class="controls">
-        <button id="reset-btn">Reset Grid</button>
+    <div class="bracket-container">
+        
+        <div class="league-half al">
+            <div class="round">
+                <div class="series-box" id="box-alwca">
+                    <div class="team-slot" onclick="advance('alwca', 0)"><span class="seed" id="alwca-s0">-</span><img id="alwca-i0" src="" alt=""><span class="name" id="alwca-n0">TBD</span></div>
+                    <div class="team-slot" onclick="advance('alwca', 1)"><span class="seed" id="alwca-s1">-</span><img id="alwca-i1" src="" alt=""><span class="name" id="alwca-n1">TBD</span></div>
+                </div>
+                <div class="series-box" id="box-alwcb">
+                    <div class="team-slot" onclick="advance('alwcb', 0)"><span class="seed" id="alwcb-s0">-</span><img id="alwcb-i0" src="" alt=""><span class="name" id="alwcb-n0">TBD</span></div>
+                    <div class="team-slot" onclick="advance('alwcb', 1)"><span class="seed" id="alwcb-s1">-</span><img id="alwcb-i1" src="" alt=""><span class="name" id="alwcb-n1">TBD</span></div>
+                </div>
+            </div>
+            <div class="round">
+                <div class="series-box" id="box-aldsa">
+                    <div class="team-slot" onclick="advance('aldsa', 0)"><span class="seed" id="aldsa-s0">-</span><img id="aldsa-i0" src="" alt=""><span class="name" id="aldsa-n0">TBD</span></div>
+                    <div class="team-slot" onclick="advance('aldsa', 1)"><span class="seed" id="aldsa-s1">-</span><img id="aldsa-i1" src="" alt=""><span class="name" id="aldsa-n1">TBD</span></div>
+                </div>
+                <div class="series-box" id="box-aldsb">
+                    <div class="team-slot" onclick="advance('aldsb', 0)"><span class="seed" id="aldsb-s0">-</span><img id="aldsb-i0" src="" alt=""><span class="name" id="aldsb-n0">TBD</span></div>
+                    <div class="team-slot" onclick="advance('aldsb', 1)"><span class="seed" id="aldsb-s1">-</span><img id="aldsb-i1" src="" alt=""><span class="name" id="aldsb-n1">TBD</span></div>
+                </div>
+            </div>
+            <div class="round">
+                <div class="series-box" id="box-alcs">
+                    <div class="team-slot" onclick="advance('alcs', 0)"><span class="seed" id="alcs-s0">-</span><img id="alcs-i0" src="" alt=""><span class="name" id="alcs-n0">TBD</span></div>
+                    <div class="team-slot" onclick="advance('alcs', 1)"><span class="seed" id="alcs-s1">-</span><img id="alcs-i1" src="" alt=""><span class="name" id="alcs-n1">TBD</span></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="world-series-center">
+            <h4 style="margin: 0 0 10px 0; font-size:12px; letter-spacing:1px; color: gold;">WORLD SERIES</h4>
+            <div class="series-box" id="box-ws" style="margin-bottom: 20px; width: 140px;">
+                <div class="team-slot" onclick="advance('ws', 0)"><span class="seed" id="ws-s0">-</span><img id="ws-i0" src="" alt=""><span class="name" id="ws-n0">AL Champ</span></div>
+                <div class="team-slot" onclick="advance('ws', 1)"><span class="seed" id="ws-s1">-</span><img id="ws-i1" src="" alt=""><span class="name" id="ws-n0">NL Champ</span></div>
+            </div>
+            
+            <div class="champion-box" id="champ-display" style="visibility: hidden;">
+                <div>Champion</div>
+                <img id="champ-img" src="" alt="">
+                <div class="champ-name" id="champ-title">Team</div>
+            </div>
+        </div>
+
+        <div class="league-half nl">
+            <div class="round">
+                <div class="series-box" id="box-nlwca">
+                    <div class="team-slot" onclick="advance('nlwca', 0)"><span class="seed" id="nlwca-s0">-</span><img id="nlwca-i0" src="" alt=""><span class="name" id="nlwca-n0">TBD</span></div>
+                    <div class="team-slot" onclick="advance('nlwca', 1)"><span class="seed" id="nlwca-s1">-</span><img id="nlwca-i1" src="" alt=""><span class="name" id="nlwca-n1">TBD</span></div>
+                </div>
+                <div class="series-box" id="box-nlwcb">
+                    <div class="team-slot" onclick="advance('nlwcb', 0)"><span class="seed" id="nlwcb-s0">-</span><img id="nlwcb-i0" src="" alt=""><span class="name" id="nlwcb-n0">TBD</span></div>
+                    <div class="team-slot" onclick="advance('nlwcb', 1)"><span class="seed" id="nlwcb-s1">-</span><img id="nlwcb-i1" src="" alt=""><span class="name" id="nlwcb-n1">TBD</span></div>
+                </div>
+            </div>
+            <div class="round">
+                <div class="series-box" id="box-nldsa">
+                    <div class="team-slot" onclick="advance('nldsa', 0)"><span class="seed" id="nldsa-s0">-</span><img id="nldsa-i0" src="" alt=""><span class="name" id="nldsa-n0">TBD</span></div>
+                    <div class="team-slot" onclick="advance('nldsa', 1)"><span class="seed" id="nldsa-s1">-</span><img id="nldsa-i1" src="" alt=""><span class="name" id="nldsa-n1">TBD</span></div>
+                </div>
+                <div class="series-box" id="box-nldsb">
+                    <div class="team-slot" onclick="advance('nldsb', 0)"><span class="seed" id="nldsb-s0">-</span><img id="nldsb-i0" src="" alt=""><span class="name" id="nldsb-n0">TBD</span></div>
+                    <div class="team-slot" onclick="advance('nldsb', 1)"><span class="seed" id="nldsb-s1">-</span><img id="nldsb-i1" src="" alt=""><span class="name" id="nldsb-n1">TBD</span></div>
+                </div>
+            </div>
+            <div class="round">
+                <div class="series-box" id="box-nlcs">
+                    <div class="team-slot" onclick="advance('nlcs', 0)"><span class="seed" id="nlcs-s0">-</span><img id="nlcs-i0" src="" alt=""><span class="name" id="nlcs-n0">TBD</span></div>
+                    <div class="team-slot" onclick="advance('nlcs', 1)"><span class="seed" id="nlcs-s1">-</span><img id="nlcs-i1" src="" alt=""><span class="name" id="nlcs-n1">TBD</span></div>
+                </div>
+            </div>
+        </div>
+
     </div>
 
     <script>
-        const initialTeams = [
-            { id: "108", name: "Angels", initialTier: "tier-bench" },
-            { id: "109", name: "Astros", initialTier: "tier-bench" },
-            { id: "133", name: "Athletics", initialTier: "tier-bench" },
-            { id: "144", name: "Braves", initialTier: "tier-bench" },
-            { id: "110", name: "Orioles", initialTier: "tier-bench" },
-            { id: "111", name: "Red Sox", initialTier: "tier-bench" },
-            { id: "112", name: "Cubs", initialTier: "tier-bench" },
-            { id: "145", name: "White Sox", initialTier: "tier-bench" },
-            { id: "113", name: "Reds", initialTier: "tier-bench" },
-            { id: "114", name: "Guardians", initialTier: "tier-bench" },
-            { id: "115", name: "Rockies", initialTier: "tier-bench" },
-            { id: "116", name: "Tigers", initialTier: "tier-bench" },
-            { id: "119", name: "Dodgers", initialTier: "tier-bench" },
-            { id: "146", name: "Marlins", initialTier: "tier-bench" },
-            { id: "158", name: "Brewers", initialTier: "tier-bench" },
-            { id: "142", name: "Twins", initialTier: "tier-bench" },
-            { id: "121", name: "Mets", initialTier: "tier-bench" },
-            { id: "147", name: "Yankees", initialTier: "tier-bench" },
-            { id: "134", name: "Pirates", initialTier: "tier-bench" },
-            { id: "143", name: "Phillies", initialTier: "tier-bench" },
-            { id: "135", name: "Padres", initialTier: "tier-bench" },
-            { id: "137", name: "Giants", initialTier: "tier-bench" },
-            { id: "136", name: "Mariners", initialTier: "tier-bench" },
-            { id: "138", name: "Cardinals", initialTier: "tier-bench" },
-            { id: "139", name: "Rays", initialTier: "tier-bench" },
-            { id: "140", name: "Rangers", initialTier: "tier-bench" },
-            { id: "141", name: "Blue Jays", initialTier: "tier-bench" },
-            { id: "120", name: "Nationals", initialTier: "tier-bench" },
-            { id: "118", name: "Royals", initialTier: "tier-bench" },
-            { id: "117", name: "Diamondbacks", initialTier: "tier-bench" }
+        const teamsPool = [
+            { id: "laa", name: "Angels" }, { id: "hou", name: "Astros" }, { id: "oak", name: "Athletics" },
+            { id: "atl", name: "Braves" }, { id: "bal", name: "Orioles" }, { id: "bos", name: "Red Sox" },
+            { id: "chc", name: "Cubs" }, { id: "chw", name: "White Sox" }, { id: "cin", name: "Reds" },
+            { id: "cle", name: "Guardians" }, { id: "col", name: "Rockies" }, { id: "det", name: "Tigers" },
+            { id: "lad", name: "Dodgers" }, { id: "mia", name: "Marlins" }, { id: "mil", name: "Brewers" },
+            { id: "min", name: "Twins" }, { id: "nym", name: "Mets" }, { id: "nyy", name: "Yankees" },
+            { id: "pit", name: "Pirates" }, { id: "phi", name: "Phillies" }, { id: "sd",  name: "Padres" },
+            { id: "sf",  name: "Giants" }, { id: "sea", name: "Mariners" }, { id: "stl", name: "Cardinals" },
+            { id: "tb",  name: "Rays" }, { id: "tex", name: "Rangers" }, { id: "tor", name: "Blue Jays" },
+            { id: "wsh", name: "Nationals" }, { id: "kc",  name: "Royals" }, { id: "ari", name: "Diamondbacks" }
         ];
 
-        function buildTierList() {
-            document.querySelectorAll('.tier-dropzone').forEach(zone => zone.innerHTML = '');
+        // Default Seeding Configuration Blueprint
+        const defaultSeeds = {
+            al1: "nyy", al2: "sea", al3: "cle", al4: "tb", al5: "tex", al6: "chw",
+            nl1: "lad", nl2: "atl", nl3: "mil", nl4: "phi", nl5: "chc", nl6: "ari"
+        };
 
-            initialTeams.forEach(team => {
-                const card = document.createElement('div');
-                card.className = 'logo-card';
-                card.draggable = true;
-                card.id = `team-${team.id}`;
-                card.title = team.name;
+        // State machine tracking whatever team data sits in each step
+        let bracketState = {};
 
-                const img = document.createElement('img');
-                // Target the home game on-cap variations to identify jerseys/uniform concepts
-                img.src = `https://www.mlbstatic.com/team-logos/team-cap-on-dark/${team.id}.svg`;
-                img.alt = team.name;
+        function getImgUrl(id) {
+            return id ? `https://a.espncdn.com/combiner/i?img=/i/teamlogos/mlb/500/${id}.png&w=60&h=60` : "";
+        }
 
-                card.appendChild(img);
-
-                card.addEventListener('dragstart', (e) => {
-                    e.dataTransfer.setData('text/plain', card.id);
+        function populateDropdowns() {
+            const dropdownIds = [
+                'sel-al1','sel-al2','sel-al3','sel-al4','sel-al5','sel-al6',
+                'sel-nl1','sel-nl2','sel-nl3','sel-nl4','sel-nl5','sel-nl6'
+            ];
+            
+            dropdownIds.forEach(id => {
+                const select = document.getElementById(id);
+                select.innerHTML = "";
+                
+                teamsPool.forEach(t => {
+                    const opt = document.createElement('option');
+                    opt.value = t.id;
+                    opt.textContent = t.name;
+                    select.appendChild(opt);
                 });
 
-                const targetZone = document.getElementById(team.initialTier);
-                if (targetZone) targetZone.appendChild(card);
+                const key = id.replace('sel-', '');
+                select.value = defaultSeeds[key];
+                select.addEventListener('change', updateSeedsFromInputs);
             });
         }
 
-        document.querySelectorAll('.tier-dropzone').forEach(zone => {
-            zone.addEventListener('dragover', (e) => {
-                e.preventDefault();
-                zone.classList.add('drag-over');
-            });
+        function updateSeedsFromInputs() {
+            // Setup Initial Base Bracket Matchups
+            // No 1 & No 2 seeds receive first round byes
+            bracketState['aldsa_0'] = getTeamData('al1', 1);
+            bracketState['aldsb_0'] = getTeamData('al2', 2);
+            bracketState['nldsa_0'] = getTeamData('nl1', 1);
+            bracketState['nldsb_0'] = getTeamData('nl2', 2);
 
-            zone.addEventListener('dragleave', () => {
-                zone.classList.remove('drag-over');
-            });
+            // Wildcard structural pairings: (4 vs 5) & (3 vs 6)
+            bracketState['alwca_0'] = getTeamData('al4', 4);
+            bracketState['alwca_1'] = getTeamData('al5', 5);
+            bracketState['alwcb_0'] = getTeamData('al3', 3);
+            bracketState['alwcb_1'] = getTeamData('al6', 6);
 
-            zone.addEventListener('drop', (e) => {
-                e.preventDefault();
-                zone.classList.remove('drag-over');
-                const cardId = e.dataTransfer.getData('text/plain');
-                const card = document.getElementById(cardId);
-                if (card) zone.appendChild(card);
-            });
-        });
+            bracketState['nlwca_0'] = getTeamData('nl4', 4);
+            bracketState['nlwca_1'] = getTeamData('nl5', 5);
+            bracketState['nlwcb_0'] = getTeamData('nl3', 3);
+            bracketState['nlwcb_1'] = getTeamData('nl6', 6);
 
-        document.getElementById('reset-btn').addEventListener('click', buildTierList);
-        buildTierList();
+            renderAllSlots();
+        }
+
+        function getTeamData(seedKey, num) {
+            const id = document.getElementById(`sel-${seedKey}`).value;
+            const match = teamsPool.find(t => t.id === id);
+            return { id: id, name: match ? match.name : "TBD", seed: num };
+        }
+
+        function renderSlot(boxId, idx, stateKey) {
+            const data = bracketState[stateKey];
+            const slotEl = document.querySelector(`#box-${boxId} .team-slot:nth-child(${idx + 1})`);
+            
+            const seedEl = document.getElementById(`${boxId}-s${idx}`);
+            const imgEl = document.getElementById(`${boxId}-i${idx}`);
+            const nameEl = document.getElementById(`${boxId}-n${idx}`);
+
+            slotEl.classList.remove('winner');
+
+            if (data && data.id) {
+                seedEl.textContent = data.seed;
+                imgEl.src = getImgUrl(data.id);
+                imgEl.style.display = "inline-block";
+                nameEl.textContent = data.name;
+                
+                // Keep visually highlighted if already advanced down line
+                if (bracketState[boxId + '_winner'] === idx) {
+                    slotEl.classList.add('winner');
+                }
+            } else {
+                seedEl.textContent = "-";
+                imgEl.src = "";
+                imgEl.style.display = "none";
+                nameEl.textContent = boxId.includes('ws') ? (idx === 0 ? "AL Champ" : "NL Champ") : "TBD";
+            }
+        }
+
+        function renderAllSlots() {
+            // Wildcards
+            renderSlot('alwca', 0, 'alwca_0'); renderSlot('alwca', 1, 'alwca_1');
+            renderSlot('alwcb', 0, 'alwcb_0'); renderSlot('alwcb', 1, 'alwcb_1');
+            renderSlot('nlwca', 0, 'nlwca_0'); renderSlot('nlwca', 1, 'nlwca_1');
+            renderSlot('nlwcb', 0, 'nlwcb_0'); renderSlot('nlwcb', 1, 'nlwcb_1');
+
+            // Division Series
+            renderSlot('aldsa', 0, 'aldsa_0'); renderSlot('aldsa', 1, 'aldsa_1');
+            renderSlot('aldsb', 0, 'aldsb_0'); renderSlot('aldsb', 1, 'aldsb_1');
+            renderSlot('nldsa', 0, 'nldsa_0'); renderSlot('nldsa', 1, 'nldsa_1');
+            renderSlot('nldsb', 0, 'nldsb_0'); renderSlot('nldsb', 1, 'nldsb_1');
+
+            // Championship Series
+            renderSlot('alcs', 0, 'alcs_0'); renderSlot('alcs', 1, 'alcs_1');
+            renderSlot('nlcs', 0, 'nlcs_0'); renderSlot('nlcs', 1, 'nlcs_1');
+
+            // World Series
+            renderSlot('ws', 0, 'ws_0'); renderSlot('ws', 1, 'ws_1');
+
+            // Global Champion UI Element Display
+            const champ = bracketState['ws_champ'];
+            const champBox = document.getElementById('champ-display');
+            if (champ) {
+                champBox.style.visibility = "visible";
+                document.getElementById('champ-img').src = getImgUrl(champ.id);
+                document.getElementById('champ-title').textContent = champ.name;
+            } else {
+                champBox.style.visibility = "hidden";
+            }
+        }
+
+        function advance(boxId, idx) {
+            const selectedTeam = bracketState[`${boxId}_${idx}`];
+            if (!selectedTeam || !selectedTeam.id) return; // Can't advance blank values
+
+            bracketState[`${boxId}_winner`] = idx;
+
+            // Chain reactions passing variables to subsequent dependency slots
+            if (boxId === 'alwca') {
+                bracketState['aldsa_1'] = selectedTeam; // Winner of AL 4/5 plays Seed 1
+                clearDownstream(['aldsa', 'alcs', 'ws']);
+            } else if (boxId === 'alwcb') {
+                bracketState['aldsb_1'] = selectedTeam; // Winner of AL 3/6 plays Seed 2
+                clearDownstream(['aldsb', 'alcs', 'ws']);
+            } else if (boxId === 'nlwca') {
+                bracketState['nldsa_1'] = selectedTeam; // Winner of NL 4/5 plays Seed 1
+                clearDownstream(['nldsa', 'nlcs', 'ws']);
+            } else if (boxId === 'nlwcb') {
+                bracketState['nldsb_1'] = selectedTeam; // Winner of NL 3/6 plays Seed 2
+                clearDownstream(['nldsb', 'nlcs', 'ws']);
+            } 
+            // LDS -> LCS
+            else if (boxId === 'aldsa') { bracketState['alcs_0'] = selectedTeam; clearDownstream(['alcs', 'ws']); }
+            else if (boxId === 'aldsb') { bracketState['alcs_1'] = selectedTeam; clearDownstream(['alcs', 'ws']); }
+            else if (boxId === 'nldsa') { bracketState['nlcs_0'] = selectedTeam; clearDownstream(['nlcs', 'ws']); }
+            else if (boxId === 'nldsb') { bracketState['nlcs_1'] = selectedTeam; clearDownstream(['nlcs', 'ws']); }
+            // LCS -> World Series
+            else if (boxId === 'alcs') { bracketState['ws_0'] = selectedTeam; clearDownstream(['ws']); }
+            else if (boxId === 'nlcs') { bracketState['ws_1'] = selectedTeam; clearDownstream(['ws']); }
+            // World Series -> Champion Finality
+            else if (boxId === 'ws') {
+                bracketState['ws_champ'] = selectedTeam;
+            }
+
+            renderAllSlots();
+        }
+
+        // Wipe out calculations further up the line if changes happen backwards
+        function clearDownstream(boxIds) {
+            boxIds.forEach(id => {
+                delete bracketState[`${id}_winner`];
+                if (id === 'alcs') { delete bracketState['alcs_0']; delete bracketState['alcs_1']; }
+                if (id === 'nlcs') { delete bracketState['nlcs_0']; delete bracketState['nlcs_1']; }
+                if (id === 'ws') { delete bracketState['ws_0']; delete bracketState['ws_1']; delete bracketState['ws_champ']; }
+            });
+        }
+
+        // Initialize App runtime
+        populateDropdowns();
+        updateSeedsFromInputs();
     </script>
 </body>
 </html>
